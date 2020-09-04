@@ -852,6 +852,30 @@
                                             <segue destination="FV0-KU-C1g" kind="show" id="uhi-v0-AVi"/>
                                         </connections>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" id="TMV-bi-bPJ">
+                                        <rect key="frame" x="0.0" y="1215.5" width="375" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="TMV-bi-bPJ" id="bT1-e9-mko">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="DOB-wH-84b">
+                                                    <rect key="frame" x="8" y="4" width="359" height="36"/>
+                                                    <state key="normal" title="Share Collected Info"/>
+                                                    <connections>
+                                                        <action selector="sendFullReport:" destination="jF1-Ov-37R" eventType="touchUpInside" id="JGb-3K-RO1"/>
+                                                    </connections>
+                                                </button>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="DOB-wH-84b" firstAttribute="top" secondItem="bT1-e9-mko" secondAttribute="top" constant="4" id="8im-rM-l35"/>
+                                                <constraint firstItem="DOB-wH-84b" firstAttribute="leading" secondItem="bT1-e9-mko" secondAttribute="leading" constant="8" id="PeC-pd-ltK"/>
+                                                <constraint firstAttribute="trailing" secondItem="DOB-wH-84b" secondAttribute="trailing" constant="8" id="dk5-u5-k0i"/>
+                                                <constraint firstAttribute="bottom" secondItem="DOB-wH-84b" secondAttribute="bottom" constant="4" id="ipL-9H-V5s"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <color key="backgroundColor" red="0.199973762" green="0.2000150383" blue="0.19997116919999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MessageUI
 
 class AppInfoViewController: UITableViewController {
     
@@ -141,6 +142,29 @@ class AppInfoViewController: UITableViewController {
         CocoaDebugSettings.shared.enableWKWebViewMonitoring = webViewSwitch.isOn
         self.showAlert()
     }
+    
+    @objc func slowAnimationsSwitchChanged(sender: UISwitch) {
+        CocoaDebugSettings.shared.slowAnimations = slowAnimationsSwitch.isOn
+    }
+    
+    @IBAction func sendFullReport(_ sender: Any) {
+        let actionSheetController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        // create an action
+        let firstAction: UIAlertAction = UIAlertAction(title: "share via email", style: .default) { [weak self] action -> Void in
+            if let mailComposeViewController = self?.configureMailComposer() {
+                self?.present(mailComposeViewController, animated: true, completion: nil)
+            }
+        }
+        
+        let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .cancel)
+        actionSheetController.addAction(firstAction)
+        actionSheetController.addAction(cancelAction)
+        
+        // present an actionSheet...
+        present(actionSheetController, animated: true, completion: nil)
+    }
+    
 }
 
 
@@ -213,5 +237,57 @@ extension AppInfoViewController {
             
             self.present(alert, animated: true, completion: nil)
         }
+    }
+}
+
+//MARK: - MFMailComposeViewControllerDelegate
+extension AppInfoViewController: MFMailComposeViewControllerDelegate {
+    
+    func configureMailComposer(_ copy: Bool = false) -> MFMailComposeViewController? {
+        if !MFMailComposeViewController.canSendMail() {
+            if copy == false {
+                //share via email
+                let alert = UIAlertController.init(title: "No Mail Accounts", message: "Please set up a Mail account in order to send email.", preferredStyle: .alert)
+                let action = UIAlertAction.init(title: "OK", style: .cancel) { _ in
+//                    CocoaDebugSettings.shared.responseShakeNetworkDetail = true
+                }
+                alert.addAction(action)
+                self.present(alert, animated: true, completion: nil)
+            } else {
+                //copy to clipboard
+//                CocoaDebugSettings.shared.responseShakeNetworkDetail = true
+            }
+            
+            return nil
+        }
+        
+        if copy == true {
+            //copy to clipboard
+//            CocoaDebugSettings.shared.responseShakeNetworkDetail = true
+            return nil
+        }
+        
+        //3.email recipients
+        let mailComposeVC = MFMailComposeViewController()
+        mailComposeVC.mailComposeDelegate = self
+        //5.body
+        let crashes = CrashStoreManager.shared.crashArray
+            .map {$0.toString()}
+            .joined(separator: "\n")
+        
+        mailComposeVC.setMessageBody(crashes, isHTML: false)
+        
+        //6.subject
+        mailComposeVC.setSubject("Genda Report")
+
+        return mailComposeVC
+    }
+    
+    func mailComposeController(
+        _ controller: MFMailComposeViewController,
+        didFinishWith result: MFMailComposeResult,
+        error: Error?
+    ) {
+        controller.dismiss(animated: true)
     }
 }
