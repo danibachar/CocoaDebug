@@ -39,6 +39,10 @@ typedef NS_ENUM (NSInteger, CocoaDebugToolType) {
 
 @property (nonatomic, assign) CocoaDebugLogType logType;
 
-- (instancetype)initWithContent:(NSString *)content color:(UIColor *)color fileInfo:(NSString *)fileInfo isTag:(BOOL)isTag type:(CocoaDebugToolType)type;
+- (instancetype)initWithContent:(NSString *)content
+                          color:(UIColor *)color
+                       fileInfo:(NSString *)fileInfo
+                          isTag:(BOOL)isTag
+                           type:(CocoaDebugToolType)type;
 
 @end

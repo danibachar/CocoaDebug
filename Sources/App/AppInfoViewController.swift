@@ -271,11 +271,14 @@ extension AppInfoViewController: MFMailComposeViewControllerDelegate {
         let mailComposeVC = MFMailComposeViewController()
         mailComposeVC.mailComposeDelegate = self
         //5.body
-        let crashes = CrashStoreManager.shared.crashArray
-            .map {$0.toString()}
-            .joined(separator: "\n")
         
-        mailComposeVC.setMessageBody(crashes, isHTML: false)
+        let body = """
+        logs = \(getLogs())
+        
+        crashes = \(getCrashes())
+        """
+        
+        mailComposeVC.setMessageBody(body, isHTML: false)
         
         //6.subject
         mailComposeVC.setSubject("Genda Report")
@@ -289,5 +292,31 @@ extension AppInfoViewController: MFMailComposeViewControllerDelegate {
         error: Error?
     ) {
         controller.dismiss(animated: true)
+    }
+    
+    private func getCrashes() -> String {
+        let crashes = CrashStoreManager.shared.crashArray
+        .map {$0.toString()}
+        .joined(separator: "\n")
+        return crashes
+    }
+    
+    private func getLogs() -> String {
+        let logs1 = _OCLogStoreManager
+        .shared()?
+        .defaultLogArray
+        .compactMap {($0 as? _OCLogModel)?.content} ?? []
+        
+        let logs2 = _OCLogStoreManager
+            .shared()?
+            .colorLogArray
+            .compactMap {($0 as? _OCLogModel)?.content} ?? []
+        
+        let logs3 = _OCLogStoreManager
+        .shared()?
+        .h5LogArray
+        .compactMap {($0 as? _OCLogModel)?.content} ?? []
+        
+        return (logs1+logs2+logs3).joined(separator: "\n")
     }
 }
