@@ -297,7 +297,7 @@ extension AppInfoViewController: MFMailComposeViewControllerDelegate {
     private func getCrashes() -> String {
         let crashes = CrashStoreManager.shared.crashArray
         .map {$0.toString()}
-        .joined(separator: "\n")
+        .joined(separator: "\n\n\n")
         return crashes
     }
     
@@ -317,6 +317,6 @@ extension AppInfoViewController: MFMailComposeViewControllerDelegate {
         .h5LogArray
         .compactMap {($0 as? _OCLogModel)?.content} ?? []
         
-        return (logs1+logs2+logs3).joined(separator: "\n")
+        return (logs1+logs2+logs3).joined(separator: "\n\n\n")
     }
 }
