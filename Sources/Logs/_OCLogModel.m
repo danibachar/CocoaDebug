@@ -12,7 +12,11 @@
 
 @implementation _OCLogModel
 
-- (instancetype)initWithContent:(NSString *)content color:(UIColor *)color fileInfo:(NSString *)fileInfo isTag:(BOOL)isTag type:(CocoaDebugToolType)type
+- (instancetype)initWithContent:(NSString *)content
+                          color:(UIColor *)color
+                       fileInfo:(NSString *)fileInfo
+                          isTag:(BOOL)isTag
+                           type:(CocoaDebugToolType)type
 {
     if (self = [super init]) {
         
@@ -101,10 +105,94 @@
         
         //
         self.str = stringContent;
-        self.attr = [attstr copy];
+        self.attr = [[_OCLogModel attributedStringFrom:fileInfo content:content date:self.date color:color ] copy];
     }
     
     return self;
+}
+
++ (NSAttributedString*)attributedStringFrom:(NSString *)fileInfo
+                                    content:(NSString *)content
+                                       date:(NSDate *)date
+                                      color:(UIColor *)color
+{
+    NSInteger startIndex = 0;
+    NSInteger lenghtDate = 0;
+    NSString *stringContent = @"";
+    
+    stringContent = [stringContent stringByAppendingFormat:@"[%@]", [_OCLoggerFormat formatDate:date]];
+    lenghtDate = [stringContent length];
+    startIndex = [stringContent length];
+    
+    if (fileInfo) {
+        stringContent = [stringContent stringByAppendingFormat:@"%@%@", fileInfo, content];
+    } else {
+        stringContent = [stringContent stringByAppendingFormat:@"%@", content];
+    }
+
+    NSMutableAttributedString *attstr = [[NSMutableAttributedString alloc] initWithString:stringContent];
+    [attstr addAttribute:NSForegroundColorAttributeName value:color range:NSMakeRange(0, [stringContent length])];
+    
+    NSRange range = NSMakeRange(0, lenghtDate);
+    [attstr addAttribute:NSForegroundColorAttributeName value: [[_NetworkHelper shared] mainColor] range: range];
+    [attstr addAttribute:NSFontAttributeName value: [UIFont boldSystemFontOfSize:12] range: range];
+    
+    NSRange range2 = NSMakeRange(startIndex, fileInfo.length);
+    [attstr addAttribute: NSForegroundColorAttributeName value: [UIColor grayColor]  range: range2];
+    [attstr addAttribute: NSFontAttributeName value: [UIFont boldSystemFontOfSize:12] range: range2];
+    
+    
+    //换行
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineBreakMode = NSLineBreakByCharWrapping;
+    
+    NSRange rang3 = NSMakeRange(0, attstr.length);
+    [attstr addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:rang3];
+    return attstr;
+}
+
+- (id)initWithCoder:(NSCoder *)decoder {
+    
+    if (self = [super init]) {
+        self.Id = [decoder decodeObjectForKey:@"Id"];
+        self.fileInfo = [decoder decodeObjectForKey:@"fileInfo"];
+        self.content = [decoder decodeObjectForKey:@"content"];
+        self.isTag = [decoder decodeBoolForKey:@"isTag"];
+        self.str = [decoder decodeObjectForKey:@"str"];
+        
+        
+        NSData *dateData = [decoder decodeObjectForKey:@"date"];
+        self.date = [NSKeyedUnarchiver unarchiveObjectWithData: dateData];
+        
+        NSData *colorData = [decoder decodeObjectForKey:@"color"];
+        self.color = [NSKeyedUnarchiver unarchiveObjectWithData: colorData];
+        self.attr = [[_OCLogModel attributedStringFrom:self.fileInfo content:self.content date:self.date color:self.color ] copy];
+        
+        NSInteger type = [decoder decodeIntForKey:@"h5LogType"];
+        switch (type) {
+        case 1:
+                self.h5LogType = H5LogTypeNotNone;
+        default:
+                self.h5LogType = H5LogTypeNone;
+        }
+        
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)encoder {
+    [encoder encodeObject:self.Id forKey:@"Id"];
+    [encoder encodeObject:self.fileInfo forKey:@"fileInfo"];
+    [encoder encodeObject:self.content forKey:@"content"];
+    [encoder encodeBool:self.isTag forKey:@"isTag"];
+    [encoder encodeObject:self.str forKey:@"str"];
+    [encoder encodeInt:self.h5LogType forKey:@"h5LogType"];
+    
+    NSDate *dateData = [NSKeyedArchiver archivedDataWithRootObject:self.date];
+    [encoder encodeObject:dateData forKey:@"date"];
+    
+    NSDate *colorDaa = [NSKeyedArchiver archivedDataWithRootObject:self.color];
+    [encoder encodeObject:colorDaa forKey:@"color"];
 }
 
 @end

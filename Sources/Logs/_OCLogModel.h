@@ -22,7 +22,7 @@ typedef NS_ENUM (NSInteger, CocoaDebugToolType) {
     CocoaDebugToolTypeProtobuf
 };
 
-@interface _OCLogModel : NSObject
+@interface _OCLogModel : NSObject <NSCoding>
 
 @property (nonatomic, copy) NSData *contentData;
 

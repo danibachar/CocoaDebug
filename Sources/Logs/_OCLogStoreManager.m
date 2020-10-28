@@ -45,24 +45,33 @@ static NSString *h5LogArrayPersistantStoreKey = @"com.cocoadebug.h5LogArrayPersi
 
 - (void)pouateLogsFromPersistantStore
 {
-    if ([NSUserDefaults.standardUserDefaults objectForKey: defaultLogArrayPersistantStoreKey] != nil) {
-        self.defaultLogArray = [NSMutableArray arrayWithArray: [NSUserDefaults.standardUserDefaults objectForKey: defaultLogArrayPersistantStoreKey]];
-    } else {
-        self.defaultLogArray = [NSMutableArray arrayWithCapacity: [[_NetworkHelper shared] logMaxCount]];
+    self.defaultLogArray = [self fetchArrayOrCreateBy:defaultLogArrayPersistantStoreKey];
+    self.colorLogArray = [self fetchArrayOrCreateBy:colorLogArrayPersistantStoreKey];
+    self.h5LogArray = [self fetchArrayOrCreateBy:h5LogArrayPersistantStoreKey];
+}
+
+- (void)saveToDisk:(NSArray<_OCLogModel*>*)array byKey:(NSString*)key
+{
+    if (array.count == 0) { return; }
+    NSMutableArray<NSData*> *archiveArray = [NSMutableArray arrayWithCapacity:array.count];
+    for (_OCLogModel* log in array) {
+        NSData *logData = [NSKeyedArchiver archivedDataWithRootObject:log];
+        [archiveArray addObject:logData];
     }
-    
-    if ([NSUserDefaults.standardUserDefaults objectForKey: colorLogArrayPersistantStoreKey] != nil) {
-        self.colorLogArray = [NSMutableArray arrayWithArray: [NSUserDefaults.standardUserDefaults objectForKey: colorLogArrayPersistantStoreKey]];
-    } else {
-        self.colorLogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
+    [NSUserDefaults.standardUserDefaults setObject: [archiveArray copy] forKey: key];
+}
+
+- (NSMutableArray<_OCLogModel*>*)fetchArrayOrCreateBy:(NSString*)key
+{
+    NSMutableArray<_OCLogModel*> *unArchiveArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
+    if ([NSUserDefaults.standardUserDefaults objectForKey: key] != nil) {
+        NSArray<NSData*> *dataArray = [NSUserDefaults.standardUserDefaults objectForKey: key];
+        for (NSData* logData in dataArray) {
+            _OCLogModel* log = [NSKeyedUnarchiver unarchiveObjectWithData:logData];
+            [unArchiveArray addObject:log];
+        }
     }
-    
-    if ([NSUserDefaults.standardUserDefaults objectForKey: h5LogArrayPersistantStoreKey] != nil) {
-        self.h5LogArray = [NSMutableArray arrayWithArray: [NSUserDefaults.standardUserDefaults objectForKey: h5LogArrayPersistantStoreKey]];
-    } else {
-        self.h5LogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
-    }
-    
+    return unArchiveArray;
 }
 
 - (void)addLog:(_OCLogModel *)log
@@ -81,8 +90,7 @@ static NSString *h5LogArrayPersistantStoreKey = @"com.cocoadebug.h5LogArrayPersi
             }
             
             [self.defaultLogArray addObject:log];
-            [NSUserDefaults.standardUserDefaults setObject: self.defaultLogArray
-                                                    forKey: defaultLogArrayPersistantStoreKey];
+            [self saveToDisk:self.defaultLogArray byKey:defaultLogArrayPersistantStoreKey];
         }
         else
         {
@@ -94,8 +102,7 @@ static NSString *h5LogArrayPersistantStoreKey = @"com.cocoadebug.h5LogArrayPersi
             }
             
             [self.colorLogArray addObject:log];
-            [NSUserDefaults.standardUserDefaults setObject: self.colorLogArray
-                                                    forKey: colorLogArrayPersistantStoreKey];
+            [self saveToDisk:self.colorLogArray byKey:colorLogArrayPersistantStoreKey];
         }
     }
     else
@@ -108,8 +115,7 @@ static NSString *h5LogArrayPersistantStoreKey = @"com.cocoadebug.h5LogArrayPersi
         }
         
         [self.h5LogArray addObject:log];
-        [NSUserDefaults.standardUserDefaults setObject:self.h5LogArray
-                                                forKey: h5LogArrayPersistantStoreKey];
+        [self saveToDisk:self.h5LogArray byKey:h5LogArrayPersistantStoreKey];
     }
     
     dispatch_semaphore_signal(semaphore);
@@ -123,19 +129,16 @@ static NSString *h5LogArrayPersistantStoreKey = @"com.cocoadebug.h5LogArrayPersi
     {
         if (log.color == [UIColor whiteColor] || log.color == nil) {
             [self.defaultLogArray removeObject:log];
-            [NSUserDefaults.standardUserDefaults setObject: self.defaultLogArray
-                                                    forKey: defaultLogArrayPersistantStoreKey];
+            [self saveToDisk:self.defaultLogArray byKey:defaultLogArrayPersistantStoreKey];
         } else {
             [self.colorLogArray removeObject:log];
-            [NSUserDefaults.standardUserDefaults setObject: self.colorLogArray
-                                                    forKey: colorLogArrayPersistantStoreKey];
+            [self saveToDisk:self.colorLogArray byKey:colorLogArrayPersistantStoreKey];
         }
     }
     else
     {
         [self.h5LogArray removeObject:log];
-        [NSUserDefaults.standardUserDefaults setObject: self.h5LogArray
-                                                forKey: h5LogArrayPersistantStoreKey];
+        [self saveToDisk:self.h5LogArray byKey:h5LogArrayPersistantStoreKey];
     }
     
     dispatch_semaphore_signal(semaphore);
