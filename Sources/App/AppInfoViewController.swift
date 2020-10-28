@@ -23,6 +23,7 @@ class AppInfoViewController: UITableViewController {
     @IBOutlet weak var labelHtml: UILabel!
     @IBOutlet weak var crashSwitch: UISwitch!
     @IBOutlet weak var logSwitch: UISwitch!
+    @IBOutlet weak var resetLogButton: UIButton!
     @IBOutlet weak var networkSwitch: UISwitch!
     @IBOutlet weak var webViewSwitch: UISwitch!
     @IBOutlet weak var slowAnimationsSwitch: UISwitch!
@@ -145,6 +146,11 @@ class AppInfoViewController: UITableViewController {
     
     @objc func slowAnimationsSwitchChanged(sender: UISwitch) {
         CocoaDebugSettings.shared.slowAnimations = slowAnimationsSwitch.isOn
+    }
+    @IBAction func resetLogs(_ sender: Any) {
+        _OCLogStoreManager.shared()?.resetDefaultLogs()
+        _OCLogStoreManager.shared()?.resetColorLogs()
+        _OCLogStoreManager.shared()?.resetH5Logs()
     }
     
     @IBAction func sendFullReport(_ sender: Any) {

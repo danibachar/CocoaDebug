@@ -15,6 +15,10 @@
 }
 @end
 
+static NSString *defaultLogArrayPersistantStoreKey = @"com.cocoadebug.defaultLogArrayPersistantStore.key";
+static NSString *colorLogArrayPersistantStoreKey = @"com.cocoadebug.colorLogArrayPersistantStore.key";
+static NSString *h5LogArrayPersistantStoreKey = @"com.cocoadebug.h5LogArrayPersistantStore.key";
+
 @implementation _OCLogStoreManager
 
 + (instancetype)shared
@@ -34,68 +38,78 @@
     self = [super init];
     if (self) {
         semaphore = dispatch_semaphore_create(1);
-        
-        self.normalLogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
-        self.rnLogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
-        self.webLogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
+        [self pouateLogsFromPersistantStore];
     }
     return self;
 }
 
+- (void)pouateLogsFromPersistantStore
+{
+    if ([NSUserDefaults.standardUserDefaults objectForKey: defaultLogArrayPersistantStoreKey] != nil) {
+        self.defaultLogArray = [NSMutableArray arrayWithArray: [NSUserDefaults.standardUserDefaults objectForKey: defaultLogArrayPersistantStoreKey]];
+    } else {
+        self.defaultLogArray = [NSMutableArray arrayWithCapacity: [[_NetworkHelper shared] logMaxCount]];
+    }
+    
+    if ([NSUserDefaults.standardUserDefaults objectForKey: colorLogArrayPersistantStoreKey] != nil) {
+        self.colorLogArray = [NSMutableArray arrayWithArray: [NSUserDefaults.standardUserDefaults objectForKey: colorLogArrayPersistantStoreKey]];
+    } else {
+        self.colorLogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
+    }
+    
+    if ([NSUserDefaults.standardUserDefaults objectForKey: h5LogArrayPersistantStoreKey] != nil) {
+        self.h5LogArray = [NSMutableArray arrayWithArray: [NSUserDefaults.standardUserDefaults objectForKey: h5LogArrayPersistantStoreKey]];
+    } else {
+        self.h5LogArray = [NSMutableArray arrayWithCapacity:[[_NetworkHelper shared] logMaxCount]];
+    }
+    
+}
+
 - (void)addLog:(_OCLogModel *)log
 {
-    if (![log.content isKindOfClass:[NSString class]]) {return;}
-    
-    //log过滤, 忽略大小写
-    for (NSString *prefixStr in [_NetworkHelper shared].onlyPrefixLogs) {
-        if (![log.content hasPrefix:prefixStr]) {
-            return;
-        }
-    }
-    //log过滤, 忽略大小写
-    for (NSString *prefixStr in [_NetworkHelper shared].ignoredPrefixLogs) {
-        if ([log.content hasPrefix:prefixStr]) {
-            return;
-        }
-    }
-    
-    
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
     
-    if (log.logType == CocoaDebugLogTypeNormal)
+    if (log.h5LogType == H5LogTypeNone)
     {
-        //normal
-        if ([self.normalLogArray count] >= [[_NetworkHelper shared] logMaxCount]) {
-            if (self.normalLogArray.count > 0) {
-                [self.normalLogArray removeObjectAtIndex:0];
+        if (log.color == [UIColor whiteColor] || log.color == nil)
+        {
+            //白色
+            if ([self.defaultLogArray count] >= [[_NetworkHelper shared] logMaxCount]) {
+                if (self.defaultLogArray.count > 0) {
+                    [self.defaultLogArray removeObjectAtIndex:0];
+                }
             }
+            
+            [self.defaultLogArray addObject:log];
+            [NSUserDefaults.standardUserDefaults setObject: self.defaultLogArray
+                                                    forKey: defaultLogArrayPersistantStoreKey];
         }
-        
-        [self.normalLogArray addObject:log];
-    }
-    else if (log.logType == CocoaDebugLogTypeRN)
-    {
-        //rn
-        if ([self.rnLogArray count] >= [[_NetworkHelper shared] logMaxCount]) {
-            if (self.rnLogArray.count > 0) {
-                [self.rnLogArray removeObjectAtIndex:0];
+        else
+        {
+            //彩色
+            if ([self.colorLogArray count] >= [[_NetworkHelper shared] logMaxCount]) {
+                if (self.colorLogArray.count > 0) {
+                    [self.colorLogArray removeObjectAtIndex:0];
+                }
             }
+            
+            [self.colorLogArray addObject:log];
+            [NSUserDefaults.standardUserDefaults setObject: self.colorLogArray
+                                                    forKey: colorLogArrayPersistantStoreKey];
         }
-        
-        [self.rnLogArray addObject:log];
     }
     else
     {
-        //web
-        if ([self.webLogArray count] >= [[_NetworkHelper shared] logMaxCount]) {
-            if (self.webLogArray.count > 0) {
-                [self.webLogArray removeObjectAtIndex:0];
+        //H5
+        if ([self.h5LogArray count] >= [[_NetworkHelper shared] logMaxCount]) {
+            if (self.h5LogArray.count > 0) {
+                [self.h5LogArray removeObjectAtIndex:0];
             }
         }
         
-        [self.webLogArray addObject:log];
+        [self.h5LogArray addObject:log];
+        [NSUserDefaults.standardUserDefaults setObject:self.h5LogArray
+                                                forKey: h5LogArrayPersistantStoreKey];
     }
     
     dispatch_semaphore_signal(semaphore);
@@ -104,44 +118,50 @@
 - (void)removeLog:(_OCLogModel *)log
 {
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    
-    if (log.logType == CocoaDebugLogTypeNormal)
+
+    if (log.h5LogType == H5LogTypeNone)
     {
-        //normal
-        [self.normalLogArray removeObject:log];
-    }
-    else if (log.logType == CocoaDebugLogTypeNormal)
-    {
-        //rn
-        [self.rnLogArray removeObject:log];
+        if (log.color == [UIColor whiteColor] || log.color == nil) {
+            [self.defaultLogArray removeObject:log];
+            [NSUserDefaults.standardUserDefaults setObject: self.defaultLogArray
+                                                    forKey: defaultLogArrayPersistantStoreKey];
+        } else {
+            [self.colorLogArray removeObject:log];
+            [NSUserDefaults.standardUserDefaults setObject: self.colorLogArray
+                                                    forKey: colorLogArrayPersistantStoreKey];
+        }
     }
     else
     {
-        //web
-        [self.webLogArray removeObject:log];
+        [self.h5LogArray removeObject:log];
+        [NSUserDefaults.standardUserDefaults setObject: self.h5LogArray
+                                                forKey: h5LogArrayPersistantStoreKey];
     }
     
     dispatch_semaphore_signal(semaphore);
 }
 
-- (void)resetNormalLogs
+- (void)resetDefaultLogs
 {
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    [self.normalLogArray removeAllObjects];
+    [self.defaultLogArray removeAllObjects];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey: defaultLogArrayPersistantStoreKey];
     dispatch_semaphore_signal(semaphore);
 }
 
-- (void)resetRNLogs
+- (void)resetColorLogs
 {
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    [self.rnLogArray removeAllObjects];
+    [self.colorLogArray removeAllObjects];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey: colorLogArrayPersistantStoreKey];
     dispatch_semaphore_signal(semaphore);
 }
 
-- (void)resetWebLogs
+- (void)resetH5Logs
 {
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-    [self.webLogArray removeAllObjects];
+    [self.h5LogArray removeAllObjects];
+    [NSUserDefaults.standardUserDefaults removeObjectForKey: h5LogArrayPersistantStoreKey];
     dispatch_semaphore_signal(semaphore);
 }
 
