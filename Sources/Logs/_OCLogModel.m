@@ -168,13 +168,13 @@
         self.color = [NSKeyedUnarchiver unarchiveObjectWithData: colorData];
         self.attr = [[_OCLogModel attributedStringFrom:self.fileInfo content:self.content date:self.date color:self.color ] copy];
         
-        NSInteger type = [decoder decodeIntForKey:@"h5LogType"];
-        switch (type) {
-        case 1:
-                self.h5LogType = H5LogTypeNotNone;
-        default:
-                self.h5LogType = H5LogTypeNone;
-        }
+//        NSInteger type = [decoder decodeIntForKey:@"h5LogType"];
+//        switch (type) {
+//        case 1:
+//                self.h5LogType = H5LogTypeNotNone;
+//        default:
+//                self.h5LogType = H5LogTypeNone;
+//        }
         
     }
     return self;
@@ -186,7 +186,7 @@
     [encoder encodeObject:self.content forKey:@"content"];
     [encoder encodeBool:self.isTag forKey:@"isTag"];
     [encoder encodeObject:self.str forKey:@"str"];
-    [encoder encodeInt:self.h5LogType forKey:@"h5LogType"];
+//    [encoder encodeInt:self.h5LogType forKey:@"h5LogType"];
     
     NSDate *dateData = [NSKeyedArchiver archivedDataWithRootObject:self.date];
     [encoder encodeObject:dateData forKey:@"date"];

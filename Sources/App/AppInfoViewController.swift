@@ -105,11 +105,6 @@ class AppInfoViewController: UITableViewController {
     }
     
     //MARK: - target action
-    @objc func slowAnimationsSwitchChanged(sender: UISwitch) {
-        CocoaDebugSettings.shared.slowAnimations = slowAnimationsSwitch.isOn
-        //        self.showAlert()
-    }
-    
     @objc func fpsSwitchChanged(sender: UISwitch) {
         CocoaDebugSettings.shared.enableFpsMonitoring = fpsSwitch.isOn
         if fpsSwitch.isOn == true {
@@ -147,10 +142,11 @@ class AppInfoViewController: UITableViewController {
     @objc func slowAnimationsSwitchChanged(sender: UISwitch) {
         CocoaDebugSettings.shared.slowAnimations = slowAnimationsSwitch.isOn
     }
+    
     @IBAction func resetLogs(_ sender: Any) {
-        _OCLogStoreManager.shared()?.resetDefaultLogs()
-        _OCLogStoreManager.shared()?.resetColorLogs()
-        _OCLogStoreManager.shared()?.resetH5Logs()
+        _OCLogStoreManager.shared()?.resetNormalLogs()
+        _OCLogStoreManager.shared()?.resetRNLogs()
+        _OCLogStoreManager.shared()?.resetWebLogs()
     }
     
     @IBAction func sendFullReport(_ sender: Any) {
@@ -310,17 +306,17 @@ extension AppInfoViewController: MFMailComposeViewControllerDelegate {
     private func getLogs() -> String {
         let logs1 = _OCLogStoreManager
         .shared()?
-        .defaultLogArray
+        .normalLogArray
         .compactMap {($0 as? _OCLogModel)?.content} ?? []
         
         let logs2 = _OCLogStoreManager
             .shared()?
-            .colorLogArray
+            .rnLogArray
             .compactMap {($0 as? _OCLogModel)?.content} ?? []
         
         let logs3 = _OCLogStoreManager
         .shared()?
-        .h5LogArray
+        .webLogArray
         .compactMap {($0 as? _OCLogModel)?.content} ?? []
         
         return (logs1+logs2+logs3).joined(separator: "\n\n\n")
